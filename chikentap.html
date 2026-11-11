@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NFT Egg Farm</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none}
+body{background:#0f0f1a;color:#fff;min-height:100vh;overflow-x:hidden}
+
+/* ===== КРАСИВЫЙ ФОН ===== */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(34, 197, 94, 0.1), transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 160px 120px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 230px 190px, #fff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 250px 250px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: -1;
+  animation: starsMove 60s linear infinite;
+}
+@keyframes starsMove {
+  from { background-position: 0 0; }
+  to { background-position: 250px 250px; }
+}
+
+.container{max-width:500px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px;padding-bottom:100px;position:relative;z-index:1}
+
+/* ВЕРХНЯЯ ПАНЕЛЬ */
+.top-bar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(15,15,26,.7);backdrop-filter:blur(15px);
+  padding:8px 16px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(255,255,255,.08);margin:-16px -16px 6px -16px;
+}
+.crystal-top{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(26,26,46,.8);border-radius:30px;padding:6px 8px 6px 14px;
+  border:1px solid rgba(34,211,238,.4);backdrop-filter:blur(5px);
+}
+.crystal-top-icon{font-size:16px}
+.crystal-top-value{font-size:15px;font-weight:700;color:#22d3ee;min-width:40px;text-align:right}
+.crystal-top-btn{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#22d3ee,#0891b2);border:none;
+  color:#fff;font-size:18px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+  transition:transform .1s;box-shadow:0 0 10px rgba(34,211,238,.4);
+}
+.crystal-top-btn:active{transform:scale(.9)}
+
+.header{display:flex;justify-content:space-between;align-items:center;background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:16px;padding:14px 18px;border:1px solid rgba(255,255,255,.05)}
+.balance-label,.income-label{font-size:12px;opacity:.6;display:block}
+.balance-value{font-size:22px;font-weight:700;color:#ffd700}
+.income-value{font-size:16px;font-weight:600;color:#4ade80}
+
+.level-bar{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;border:1px solid rgba(255,255,255,.05)}
+.level-top{display:flex;justify-content:space-between;font-size:12px;font-weight:600}
+.level-title{color:#4ade80}
+.level-track{height:8px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden}
+.level-fill{height:100%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:10px;transition:width .3s;width:0%}
+
+.energy-bar{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:10px 14px;border:1px solid rgba(255,255,255,.05)}
+.energy-top{display:flex;justify-content:space-between;font-size:12px;opacity:.7;margin-bottom:6px}
+.energy-track{height:10px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden}
+.energy-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:10px;transition:width .1s;width:100%}
+
+.chicken-area{background:linear-gradient(135deg,rgba(26,26,46,.9),rgba(22,33,62,.9));border-radius:20px;padding:24px;text-align:center;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:320px;border:1px solid rgba(255,255,255,.05);box-shadow:inset 0 0 50px rgba(0,0,0,.5)}
+.chicken-area::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255, 200, 0, 0.15), transparent 70%);
+  border-radius: 50%;
+  animation: pulseGlow 3s infinite alternate;
+}
+@keyframes pulseGlow {
+  from { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+  to { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+.chicken-img{font-size:180px;line-height:1;cursor:pointer;transition:transform .08s;touch-action:manipulation;-webkit-user-drag:none;filter:drop-shadow(0 10px 25px rgba(255,200,0,.3));animation:idleFloat 3s ease-in-out infinite;position:relative;z-index:2}
+@keyframes idleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.chicken-img:active{transform:scale(.9)}
+.chicken-img.bounce{animation:bounce .3s}
+@keyframes bounce{0%{transform:scale(1)}40%{transform:scale(1.15) rotate(-5deg)}70%{transform:scale(.95) rotate(5deg)}100%{transform:scale(1)}}
+
+.chicken-hint{font-size:13px;opacity:.6;margin-top:8px;position:relative;z-index:2}
+.float-text{position:absolute;font-size:22px;font-weight:800;color:#ffd700;pointer-events:none;animation:floatUp 1s ease-out forwards;z-index:10;text-shadow:0 2px 10px rgba(0,0,0,.8)}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.4)}}
+.tap-wave{position:absolute;border:3px solid rgba(255,215,0,.8);border-radius:50%;pointer-events:none;animation:waveExpand 0.6s ease-out forwards;z-index:1;transform:translate(-50%, -50%);box-shadow: 0 0 20px rgba(255,215,0,.5), inset 0 0 20px rgba(255,215,0,.5)}
+@keyframes waveExpand{0%{width:0px;height:0px;opacity:1}100%{width:200px;height:200px;opacity:0;border-width:1px}}
+
+.section-title{font-size:14px;font-weight:600;margin-bottom:10px;opacity:.8}
+.eggs-section{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,.05)}
+.eggs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.egg-slot{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.03);border:2px solid transparent;position:relative;overflow:hidden}
+.egg-slot::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transform: skewX(-20deg); animation: shine 3s infinite; }
+@keyframes shine { 0% { left: -100%; } 20% { left: 100%; } 100% { left: 100%; } }
+.egg-slot .egg-rarity{font-size:8px;margin-top:2px;font-weight:600;opacity:.8}
+.egg-slot.common{border-color:#9ca3af;box-shadow: inset 0 0 15px rgba(156,163,175,.2)}.egg-slot.rare{border-color:#3b82f6;box-shadow:0 0 15px rgba(59,130,246,.4), inset 0 0 15px rgba(59,130,246,.2)}.egg-slot.epic{border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,.5), inset 0 0 15px rgba(168,85,247,.3)}.egg-slot.legendary{border-color:#f59e0b;box-shadow:0 0 25px rgba(245,158,11,.6), inset 0 0 15px rgba(245,158,11,.4);animation: legendaryPulse 1.5s infinite alternate}
+@keyframes legendaryPulse { from { box-shadow: 0 0 15px rgba(245,158,11,.4); } to { box-shadow: 0 0 30px rgba(245,158,11,.8); } }
+.egg-slot.empty{opacity:.25;font-size:20px}
+
+.boosts-title{font-size:14px;font-weight:600;opacity:.8;margin-top:4px}
+.boosts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.boost-card{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:transform .1s,opacity .2s;border:1px solid rgba(255,255,255,.05)}
+.boost-card:active{transform:scale(.97)}.boost-card.disabled{opacity:.4}
+.boost-icon{font-size:24px}.boost-name{font-size:13px;font-weight:600}.boost-desc{font-size:11px;opacity:.6;line-height:1.2}.boost-price{font-size:12px;font-weight:700;color:#ffd700;margin-top:2px}.boost-price.cant{color:#6b7280}
+
+.tab-page{display:none;flex-direction:column;gap:14px}.tab-page.active{display:flex}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(26,26,46,.95);backdrop-filter:blur(15px);display:flex;justify-content:space-around;padding:10px 0 calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.08);max-width:500px;margin:0 auto;z-index:100}
+.tab-btn{background:none;border:none;color:#fff;font-size:10px;opacity:.5;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 4px;transition:opacity .2s;position:relative}
+.tab-btn.active{opacity:1}.tab-btn .tab-icon{font-size:20px}
+.tab-badge{position:absolute;top:0;right:4px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center}
+
+.nest-info{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:14px;font-size:13px;opacity:.8;line-height:1.5;border:1px solid rgba(255,255,255,.05)}.nest-info b{color:#ffd700}
+.nest-grid{display:flex;flex-direction:column;gap:10px}
+.nest-card{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;border:2px solid transparent}
+.nest-card.common{border-color:#9ca3af}.nest-card.rare{border-color:#3b82f6}.nest-card.epic{border-color:#a855f7}.nest-card.legendary{border-color:#f59e0b}
+.nest-card.ready{animation:glow 1.5s infinite alternate}
+@keyframes glow{from{box-shadow:0 0 10px rgba(74,222,128,.5)}to{box-shadow:0 0 30px rgba(74,222,128,1)}}
+.nest-egg{font-size:40px;width:56px;text-align:center}
+.nest-card.ready .nest-egg{animation:wiggle .6s infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.nest-info-block{flex:1}.nest-name{font-size:15px;font-weight:600}.nest-timer{font-size:12px;opacity:.7;margin-top:2px}
+.nest-progress{height:6px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;margin-top:8px}
+.nest-progress-fill{height:100%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:6px;transition:width .5s}
+.nest-btn{background:#2481cc;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.nest-btn.claim{background:#22c55e;animation:pulseBtn 1s infinite}
+@keyframes pulseBtn{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.nest-btn:disabled{background:#4b5563;cursor:default}
+.empty-nest{text-align:center;padding:40px 20px;opacity:.5;font-size:14px}.empty-nest .big{font-size:60px;margin-bottom:12px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(26,26,46,.95);backdrop-filter:blur(10px);color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;z-index:1000;animation:toastIn .3s ease-out;max-width:90%;text-align:center;border:1px solid rgba(255,255,255,.1);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}
+.hidden{display:none!important}
+
+/* ПИТОМЦЫ */
+.pets-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pet-card{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid transparent;text-align:center;position:relative}
+.pet-card.common{border-color:#9ca3af}.pet-card.rare{border-color:#3b82f6;box-shadow:0 0 15px rgba(59,130,246,.3)}.pet-card.epic{border-color:#a855f7;box-shadow:0 0 15px rgba(168,85,247,.4)}.pet-card.legendary{border-color:#f59e0b;box-shadow:0 0 20px rgba(245,158,11,.5)}
+.pet-card.equipped{border-color:#22c55e !important;box-shadow:0 0 25px rgba(34,197,94,.6) !important;background:linear-gradient(135deg,rgba(26,46,26,.9),rgba(22,46,22,.9))}
+.pet-card.equipped::after{content:'⭐';position:absolute;top:6px;right:8px;font-size:16px;animation:starPulse 1s infinite alternate}
+.pet-card.listed{opacity:.7;border-style:dashed}
+@keyframes starPulse{from{transform:scale(1)}to{transform:scale(1.2)}}
+.pet-emoji{font-size:44px}
+.pet-name{font-size:12px;font-weight:600;line-height:1.1}
+.pet-income{font-size:11px;color:#4ade80;font-weight:600}
+.pet-income .bonus{color:#22c55e;font-size:10px;margin-left:2px}
+.pet-slot-empty{border:2px dashed rgba(255,255,255,.15);background:transparent;display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.3;border-radius:14px;aspect-ratio:1;min-height:120px}
+.pet-summary{background:linear-gradient(135deg,rgba(26,26,46,.9),rgba(22,33,62,.9));backdrop-filter:blur(10px);border-radius:16px;padding:14px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,.05)}
+.pet-summary .label{font-size:12px;opacity:.6}
+.pet-summary .value{font-size:20px;font-weight:700;color:#4ade80}
+.pet-actions{display:flex;flex-direction:column;gap:4px;width:100%;margin-top:4px}
+.pet-btn{border:none;border-radius:8px;padding:6px 4px;font-size:10px;font-weight:700;cursor:pointer;transition:transform .1s;width:100%;white-space:nowrap}
+.pet-btn:active{transform:scale(.95)}
+.pet-btn-equip{background:rgba(34,197,94,.2);color:#22c55e;border:1px solid #22c55e}
+.pet-btn-equip.equipped{background:#22c55e;color:#fff}
+.pet-btn-sell{background:rgba(34,211,238,.2);color:#22d3ee;border:1px solid #22d3ee}
+.pet-btn-del{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid #ef4444}
+
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shop-card{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:transform .1s;border:1px solid rgba(255,255,255,.05)}
+.shop-card:active{transform:scale(.97)}
+.shop-card.disabled{opacity:.4}
+.shop-icon{font-size:28px}
+.shop-name{font-size:13px;font-weight:600}
+.shop-desc{font-size:11px;opacity:.6;line-height:1.2}
+.shop-price{font-size:12px;font-weight:700;color:#22d3ee;margin-top:2px}
+.shop-price.cant{color:#6b7280}
+.market-tabs{display:flex;gap:8px;margin-bottom:4px}
+.market-tab{flex:1;background:rgba(26,26,46,.8);border:1px solid rgba(255,255,255,.05);color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600;opacity:.5;cursor:pointer}
+.market-tab.active{opacity:1;background:#2481cc;border-color:#2481cc}
+.shop-tabs{display:flex;gap:8px;margin-bottom:10px}
+.shop-tab{flex:1;background:rgba(26,26,46,.8);border:1px solid rgba(255,255,255,.05);color:#fff;padding:10px;border-radius:10px;font-size:13px;font-weight:600;opacity:.5;cursor:pointer}
+.shop-tab.active{opacity:1;background:#2481cc;border-color:#2481cc}
+
+.profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}
+.profile-row:last-child{border-bottom:none}
+.profile-row b{color:#ffd700}
+.buy-crystals-btn{background:linear-gradient(135deg,#22d3ee,#0891b2);border:none;color:#fff;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;box-shadow:0 4px 15px rgba(34,211,238,.3)}
+.buy-crystals-btn:active{transform:scale(.98)}
+
+/* РУЛЕТКА */
+.roulette-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:20px;animation:fadeIn .25s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.roulette-title{font-size:22px;font-weight:700;color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,.5);animation:pulseTitle 1s infinite alternate}
+@keyframes pulseTitle{from{transform:scale(1)}to{transform:scale(1.05)}}
+.roulette-window{position:relative;width:100%;max-width:420px;height:120px;background:#1a1a2e;border-radius:20px;overflow:hidden;border:3px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.4)}
+.roulette-strip{display:flex;align-items:center;height:100%;position:absolute;left:0;top:0;will-change:transform}
+.roulette-item{flex:0 0 110px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:48px;position:relative}
+.roulette-item .item-rarity{font-size:10px;font-weight:600;opacity:.7;margin-top:4px}
+.roulette-item.common{color:#e5e7eb}.roulette-item.rare{color:#3b82f6}.roulette-item.epic{color:#a855f7}.roulette-item.legendary{color:#f59e0b}
+.roulette-pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:32px;color:#ffd700;z-index:10;filter:drop-shadow(0 0 10px rgba(255,215,0,.8));animation:pointerBob .6s infinite alternate}
+@keyframes pointerBob{from{transform:translate(-50%,0)}to{transform:translate(-50%,4px)}}
+.roulette-line{position:absolute;top:0;bottom:0;left:50%;width:3px;background:linear-gradient(180deg,transparent,#ffd700,transparent);transform:translateX(-50%);z-index:5;box-shadow:0 0 15px #ffd700}
+.roulette-result{font-size:18px;font-weight:700;opacity:0;transition:opacity .3s;text-align:center;min-height:26px}
+.roulette-result.show{opacity:1}
+.roulette-win-glow{position:absolute;inset:0;background:radial-gradient(circle at center, rgba(255,215,0,.4), transparent 70%);pointer-events:none;opacity:0;transition:opacity .3s}
+.roulette-win-glow.show{opacity:1}
+.roulette-skip{font-size:12px;opacity:.5;margin-top:4px}
+.roulette-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti-piece{position:absolute;width:8px;height:14px;top:-20px;border-radius:2px;animation:confettiFall 2s linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* АНИМАЦИЯ ВЫЛУПЛЕНИЯ */
+.hatch-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);z-index:2500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeIn .3s ease-out;padding:20px;}
+.hatch-egg-container{position:relative;display:flex;align-items:center;justify-content:center;width:200px;height:200px;}
+.hatch-egg{font-size:120px;animation:eggShake 0.1s infinite alternate;transition:transform 0.3s, opacity 0.3s;filter:drop-shadow(0 0 20px rgba(255,255,255,.3));}
+@keyframes eggShake{0%{transform:rotate(-5deg) scale(1.05)}100%{transform:rotate(5deg) scale(1.05)}}
+.hatch-glow{position:absolute;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.8), transparent 70%);opacity:0;transition:opacity .3s;}
+.hatch-glow.flash{animation:flashBoom 0.5s ease-out forwards;}
+@keyframes flashBoom{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(3)}}
+.hatch-pet{font-size:120px;position:absolute;opacity:0;transform:scale(0);filter:drop-shadow(0 0 30px rgba(255,215,0,.8));}
+.hatch-pet.show{animation:petReveal 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;}
+@keyframes petReveal{0%{opacity:0;transform:scale(0) translateY(50px) rotate(-20deg);}60%{opacity:1;transform:scale(1.2) translateY(-10px) rotate(10deg);}100%{opacity:1;transform:scale(1) translateY(0) rotate(0deg);}}
+.hatch-pet.legendary{filter:drop-shadow(0 0 40px rgba(255,215,0,1));}
+.hatch-pet.epic{filter:drop-shadow(0 0 40px rgba(168,85,247,1));}
+.hatch-pet.rare{filter:drop-shadow(0 0 30px rgba(59,130,246,1));}
+.hatch-name{font-size:24px;font-weight:800;opacity:0;transform:translateY(20px);transition:all .4s;text-shadow:0 0 15px rgba(255,255,255,.5);margin-top:10px;}
+.hatch-name.show{opacity:1;transform:translateY(0);}
+.hatch-subtitle{font-size:14px;opacity:0;transition:opacity .4s;}
+.hatch-subtitle.show{opacity:.8;}
+.hatch-actions{opacity:0;transition:opacity .4s;margin-top:10px;}
+.hatch-actions.show{opacity:1;}
+
+/* МОДАЛКИ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease-out}
+.modal{background:#1a1a2e;border-radius:20px;padding:24px;max-width:380px;width:100%;border:2px solid #22d3ee;box-shadow:0 0 40px rgba(34,211,238,.3)}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:12px;text-align:center}
+.modal-pet{display:flex;align-items:center;gap:14px;justify-content:center;margin-bottom:16px}
+.modal-pet .pet-emoji{font-size:56px}
+.modal-pet-info{text-align:left}
+.modal-pet-info .name{font-size:16px;font-weight:700}
+.modal-pet-info .income{font-size:12px;color:#4ade80;margin-top:2px}
+.modal-hint{font-size:12px;opacity:.6;text-align:center;margin-bottom:10px}
+.modal-input-wrap{position:relative;margin-bottom:16px}
+.modal-input{width:100%;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.15);border-radius:12px;padding:14px 50px 14px 16px;color:#fff;font-size:18px;font-weight:700;text-align:center;outline:none;transition:border-color .2s}
+.modal-input:focus{border-color:#22d3ee}
+.modal-input-suffix{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:16px;color:#22d3ee;font-weight:700}
+.modal-recommend{font-size:12px;text-align:center;color:#22d3ee;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px}
+.modal-btn{flex:1;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .1s}
+.modal-btn:active{transform:scale(.97)}
+.modal-btn-cancel{background:rgba(255,255,255,.08);color:#fff}
+.modal-btn-confirm{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#fff}
+.modal-btn-confirm:disabled{opacity:.4;cursor:default}
+
+/* МАГАЗИН КРИСТАЛЛОВ */
+.buy-crystals-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.crystal-pack{background:rgba(34,211,238,.08);border:2px solid rgba(34,211,238,.3);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .1s,background .2s}
+.crystal-pack:active{transform:scale(.96);background:rgba(34,211,238,.15)}
+.crystal-pack.best{border-color:#fbbf24;background:rgba(251,191,36,.08);box-shadow:0 0 15px rgba(251,191,36,.3)}
+.crystal-pack.best:active{background:rgba(251,191,36,.15)}
+.crystal-pack-icon{font-size:32px}
+.crystal-pack-amount{font-size:16px;font-weight:700;color:#22d3ee}
+.crystal-pack-price{font-size:13px;font-weight:600;color:#fbbf24;margin-top:2px}
+.crystal-pack-price:before{content:'⭐ ';font-size:12px}
+.crystal-pack-bonus{font-size:10px;color:#4ade80;font-weight:600;margin-top:2px;min-height:12px}
+
+/* КОЛЕСО ФОРТУНЫ */
+.wheel-wrapper{position:relative;width:260px;height:260px;margin:10px auto;}
+.wheel{width:100%;height:100%;border-radius:50%;border:8px solid #1a1a2e;box-shadow:0 0 30px rgba(255,215,0,.4);position:relative;transition:transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);overflow:hidden;}
+.wheel-text{position:absolute;transform-origin:0 0;font-size:12px;font-weight:700;color:#fff;}
+.wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;background:#1a1a2e;border:3px solid #ffd700;border-radius:50%;z-index:10;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.wheel-pointer{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:36px;color:#ffd700;z-index:11;filter:drop-shadow(0 0 10px rgba(255,215,0,1));}
+
+/* СКИНЫ */
+.skin-card{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;border:2px solid transparent;margin-bottom:8px}
+.skin-card.owned{border-color:#4ade80;background:rgba(74,222,128,.05)}
+.skin-card.equipped{border-color:#22c55e;box-shadow:0 0 15px rgba(34,197,94,.4)}
+.skin-info{display:flex;align-items:center;gap:12px}
+.skin-emoji{font-size:40px}
+.skin-name{font-size:14px;font-weight:700}
+.skin-price{font-size:12px;color:#22d3ee;font-weight:600;margin-top:2px}
+.skin-btn{border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.skin-btn.buy{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#fff}
+.skin-btn.equip{background:rgba(34,197,94,.2);color:#22c55e;border:1px solid #22c55e}
+.skin-btn.equipped{background:#22c55e;color:#fff}
+.skin-btn.disabled{opacity:.4;cursor:default}
+
+/* ДОСТИЖЕНИЯ */
+.ach-list{display:flex;flex-direction:column;gap:8px}
+.ach-item{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:12px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.05)}
+.ach-item.done{border-color:#22c55e;background:rgba(34,197,94,.05)}
+.ach-icon{font-size:28px;width:40px;text-align:center}
+.ach-info{flex:1}
+.ach-title{font-size:13px;font-weight:700}
+.ach-desc{font-size:11px;opacity:.6;margin-top:2px}
+.ach-reward{font-size:12px;font-weight:700;color:#ffd700;margin-top:2px}
+.ach-status{font-size:20px}
+
+/* ТУТОРИАЛ */
+.tutorial-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);backdrop-filter:blur(10px);z-index:4000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;animation:fadeIn .3s}
+.tutorial-step{font-size:60px;margin-bottom:20px;animation:idleFloat 3s infinite}
+.tutorial-title{font-size:22px;font-weight:800;margin-bottom:10px;color:#ffd700}
+.tutorial-text{font-size:15px;opacity:.8;line-height:1.5;margin-bottom:30px;max-width:350px}
+.tutorial-btn{background:linear-gradient(135deg,#ffd700,#f59e0b);color:#1a1a2e;border:none;border-radius:30px;padding:14px 40px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(255,215,0,.4)}
+.tutorial-dots{display:flex;gap:8px;margin-bottom:20px}
+.tutorial-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2)}
+.tutorial-dot.active{background:#ffd700;width:20px;border-radius:4px}
+
+/* ЗАДАНИЯ */
+.task-item{background:rgba(26,26,46,.8);backdrop-filter:blur(10px);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;border:2px solid transparent}
+.task-item.completed{border-color:#22c55e;background:rgba(34,197,94,.05)}
+.task-icon{font-size:32px;width:44px;text-align:center}
+.task-info{flex:1}
+.task-title{font-size:14px;font-weight:700}
+.task-desc{font-size:11px;opacity:.6;margin-top:2px}
+.task-reward{font-size:12px;font-weight:700;color:#22d3ee;margin-top:4px}
+.task-btn{border:none;color:#fff;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22d3ee,#0891b2)}
+.task-btn.disabled{background:rgba(75,85,99,.5);color:#9ca3af;cursor:not-allowed}
+.task-btn.claim{background:linear-gradient(135deg,#22c55e,#16a34a);animation:pulseBtn 1s infinite}
+
+/* БОНУСЫ */
+.bonus-card{background:linear-gradient(135deg,rgba(245,158,11,.9),rgba(217,119,6,.9));backdrop-filter:blur(10px);border-radius:16px;padding:20px;text-align:center;margin-bottom:12px;box-shadow:0 4px 15px rgba(245,158,11,.3);border:1px solid rgba(255,255,255,.1)}
+.bonus-card h3{font-size:18px;font-weight:800;margin-bottom:8px}
+.bonus-card p{font-size:13px;opacity:.9;margin-bottom:16px}
+.bonus-btn{background:#fff;color:#d97706;border:none;border-radius:30px;padding:10px 24px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.bonus-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* КРАСИВАЯ КНОПКА КОЛЕСА */
+.wheel-big-card{
+  background: linear-gradient(135deg, #ff8a00, #e52e71);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(229, 46, 113, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s;
+  animation: wheelGlow 2s infinite alternate;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.wheel-big-card:active { transform: scale(0.98); }
+@keyframes wheelGlow {
+  from { box-shadow: 0 0 20px rgba(229, 46, 113, 0.4); }
+  to { box-shadow: 0 0 40px rgba(229, 46, 113, 0.8), 0 0 20px rgba(255, 138, 0, 0.6); }
+}
+.wheel-big-card::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+}
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+.wheel-big-title { font-size: 24px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); position: relative; z-index: 2; margin-bottom: 8px;}
+.wheel-big-desc { font-size: 14px; color: rgba(255,255,255,0.9); position: relative; z-index: 2; margin-bottom: 16px;}
+.wheel-big-btn {
+  background: #fff; color: #e52e71; border: none; border-radius: 30px; padding: 12px 30px;
+  font-size: 16px; font-weight: 800; position: relative; z-index: 2; cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.wheel-big-btn:disabled { background: rgba(255,255,255,0.5); color: #fff; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+<div class="top-bar">
+  <div style="font-size:18px;font-weight:800;color:#ffd700;letter-spacing:1px;text-shadow:0 0 10px rgba(255,215,0,.5)">NFT EGG</div>
+  <div class="crystal-top">
+    <span class="crystal-top-icon">💎</span>
+    <span class="crystal-top-value" id="topCrystals">0</span>
+    <button class="crystal-top-btn" onclick="openCrystalShop()">+</button>
+  </div>
+</div>
+
+<div class="container">
+<!-- ФЕРМА -->
+<div class="tab-page active" id="page-farm">
+<div class="header">
+  <div><span class="balance-label">Очки фермы</span><span class="balance-value" id="balance">0</span></div>
+  <div style="text-align:right"><span class="income-label">Яиц всего</span><span class="income-value" id="eggCount">0</span></div>
+</div>
+<div class="level-bar">
+  <div class="level-top">
+    <span class="level-title" id="chickenLevelText">Ур. 1</span>
+    <span style="opacity:.6" id="chickenLevelPower">Сила тапа: 1</span>
+  </div>
+  <div class="level-track"><div class="level-fill" id="chickenLevelFill"></div></div>
+</div>
+<div class="energy-bar"><div class="energy-top"><span>⚡ Энергия</span><span id="energyText">1000 / 1000</span></div><div class="energy-track"><div class="energy-fill" id="energyFill"></div></div></div>
+
+<div class="chicken-area" id="chickenArea">
+  <div class="chicken-img" id="chicken" alt="Курица">🐔</div>
+  <div class="chicken-hint">Тапай. Шанс яйца: 0.05%</div>
+</div>
+<div class="eggs-section"><div class="section-title">🥚 Последние яйца</div><div class="eggs-grid" id="eggsGrid"></div></div>
+<div class="boosts-title">⚡ Бустеры</div><div class="boosts-grid" id="boostsGrid"></div>
+</div>
+
+<!-- ГНЕЗДО -->
+<div class="tab-page" id="page-nest">
+<div class="header">
+  <div><span class="balance-label">Очки фермы</span><span class="balance-value" id="balance2">0</span></div>
+  <div style="text-align:right"><span class="income-label">В гнезде</span><span class="income-value" id="nestCount">0 / 3</span></div>
+</div>
+<div class="nest-info">🪺 <b>Гнездо</b> — посади яйцо, оно вылупится в питомца. Максимум <b>3 яйца</b>.</div>
+<div class="nest-grid" id="nestGrid"></div>
+<div class="section-title" style="margin-top:8px;">📦 Коллекция яиц</div>
+<div class="eggs-grid" id="inventoryGrid"></div>
+</div>
+
+<!-- ПИТОМЦЫ -->
+<div class="tab-page" id="page-pets">
+<div class="header">
+  <div><span class="balance-label">Питомцев</span><span class="balance-value" id="petCount">0 / 5</span></div>
+  <div style="text-align:right"><span class="income-label">Доход</span><span class="income-value" id="petIncome">+0/сек</span></div>
+</div>
+<div class="pet-summary">
+  <div><div class="label">Суммарный доход</div><div class="value" id="petIncomeBig">+0 / сек</div></div>
+  <div><div class="label">Кристаллы</div><div class="value" style="color:#22d3ee" id="petCrystals">0 💎</div></div>
+</div>
+<div class="section-title">🐾 Коллекция питомцев</div>
+<div class="pets-grid" id="petsGrid"></div>
+</div>
+
+<!-- РЫНОК -->
+<div class="tab-page" id="page-market">
+<div class="market-tabs">
+  <button class="market-tab active" onclick="switchMarketTab('my')">📤 Мои лоты</button>
+  <button class="market-tab" onclick="switchMarketTab('shop')">🛒 Магазин</button>
+</div>
+<div id="market-my">
+  <div class="section-title">📤 Твои лоты на продажу</div>
+  <div id="myLotsContainer" class="pets-grid"></div>
+</div>
+<div id="market-shop" class="hidden">
+  <div class="shop-tabs">
+    <button class="shop-tab active" onclick="switchShopTab('cases', event)">🎁 Кейсы</button>
+    <button class="shop-tab" onclick="switchShopTab('skins', event)">🎨 Скины</button>
+  </div>
+  <div id="shop-cases" class="shop-grid"></div>
+  <div id="shop-skins" class="hidden" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+</div>
+
+<!-- ЗАДАНИЯ -->
+<div class="tab-page" id="page-tasks">
+<div class="header">
+  <div><span class="balance-label">Задания</span><span class="balance-value" style="color:#4ade80">Выполняй</span></div>
+</div>
+<div id="tasksList"></div>
+</div>
+
+<!-- БОНУСЫ -->
+<div class="tab-page" id="page-bonuses">
+<div class="header">
+  <div><span class="balance-label">Бонусы</span><span class="balance-value" style="color:#fbbf24">Халява</span></div>
+</div>
+
+<div class="bonus-card" id="dailyBonusCard">
+  <h3>🎁 Ежедневный бонус</h3>
+  <p>Заходи каждый день и получай кристаллы!</p>
+  <button class="bonus-btn" id="dailyBonusBtn" onclick="claimDailyBonus()">Забрать 25 💎</button>
+</div>
+
+<div class="wheel-big-card" onclick="openDailyWheel()">
+  <div class="wheel-big-title">🎡 Колесо Фортуны</div>
+  <div class="wheel-big-desc">Крути бесплатно раз в 24 часа!</div>
+  <button class="wheel-big-btn" id="wheelBigBtn">Крутить</button>
+</div>
+
+</div>
+
+<!-- ПРОФИЛЬ -->
+<div class="tab-page" id="page-profile">
+<div class="header">
+  <div><span class="balance-label">Кристаллы</span><span class="crystal-value" id="profileCrystals" style="color:#22d3ee;font-size:22px;font-weight:700;">0 💎</span></div>
+  <div style="text-align:right"><span class="income-label">Всего яиц</span><span class="income-value" id="totalEggs">0</span></div>
+</div>
+<div class="nest-info">
+  <div class="profile-row"><span>🐔 Тапов</span><b id="statTaps">0</b></div>
+  <div class="profile-row"><span>🥚 Вылуплено</span><b id="statHatched">0</b></div>
+  <div class="profile-row"><span>🐾 Питомцев</span><b id="statPets">0</b></div>
+  <div class="profile-row"><span>💪 Сила тапа</span><b id="statPower">1</b></div>
+  <div class="profile-row"><span>🔋 Макс. энергия</span><b id="statEnergy">1000</b></div>
+  <div class="profile-row"><span>💎 Кристаллы</span><b id="statCrystals">0</b></div>
+</div>
+<div class="section-title" style="margin-top:8px;">🏆 Достижения</div>
+<div class="ach-list" id="achList"></div>
+<button class="buy-crystals-btn" onclick="openCrystalShop()">💎 Купить кристаллы за звёзды</button>
+<button class="buy-crystals-btn" style="background:linear-gradient(135deg,#ef4444,#b91c1c);margin-top:8px" onclick="resetTest()">🔄 Сбросить прогресс</button>
+</div>
+
+</div>
+
+<div class="bottom-bar">
+<button class="tab-btn active" data-tab="farm" onclick="switchTab('farm')"><span class="tab-icon">🐔</span><span>Ферма</span></button>
+<button class="tab-btn" data-tab="nest" onclick="switchTab('nest')"><span class="tab-icon">🪺</span><span>Гнездо</span><span class="tab-badge hidden" id="nestBadge">0</span></button>
+<button class="tab-btn" data-tab="pets" onclick="switchTab('pets')"><span class="tab-icon">🐾</span><span>Питомцы</span></button>
+<button class="tab-btn" data-tab="market" onclick="switchTab('market')"><span class="tab-icon">🏪</span><span>Рынок</span></button>
+<button class="tab-btn" data-tab="tasks" onclick="switchTab('tasks')"><span class="tab-icon">📋</span><span>Задания</span></button>
+<button class="tab-btn" data-tab="bonuses" onclick="switchTab('bonuses')"><span class="tab-icon">🎁</span><span>Бонусы</span></button>
+<button class="tab-btn" data-tab="profile" onclick="switchTab('profile')"><span class="tab-icon">👤</span><span>Профиль</span></button>
+</div>
+
+<!-- РУЛЕТКА ЯИЦ -->
+<div id="rouletteOverlay" class="roulette-overlay hidden">
+  <div class="roulette-title">🎰 Выпало яйцо!</div>
+  <div class="roulette-window">
+    <div class="roulette-line"></div>
+    <div class="roulette-pointer">▼</div>
+    <div class="roulette-strip" id="rouletteStrip"></div>
+    <div class="roulette-win-glow" id="rouletteGlow"></div>
+  </div>
+  <div class="roulette-result" id="rouletteResult"></div>
+  <div class="roulette-skip">Нажми, чтобы продолжить</div>
+  <div class="roulette-confetti" id="rouletteConfetti"></div>
+</div>
+
+<!-- АНИМАЦИЯ ВЫЛУПЛЕНИЯ -->
+<div id="hatchOverlay" class="hatch-overlay hidden">
+  <div class="hatch-egg-container">
+    <div class="hatch-glow" id="hatchGlow"></div>
+    <div class="hatch-egg" id="hatchEgg">🥚</div>
+    <div class="hatch-pet" id="hatchPet"></div>
+  </div>
+  <div class="hatch-name" id="hatchName">Имя питомца</div>
+  <div class="hatch-subtitle" id="hatchSubtitle">+0 / сек</div>
+  <div class="hatch-actions">
+    <div class="roulette-skip">Нажми, чтобы продолжить</div>
+  </div>
+  <div class="roulette-confetti" id="hatchConfetti"></div>
+</div>
+
+<!-- МОДАЛКА ВЫСТАВЛЕНИЯ -->
+<div id="listPetModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">📤 Выставить на рынок</div>
+    <div class="modal-pet" id="listPetPreview"></div>
+    <div class="modal-hint">Укажи цену в кристаллах 💎</div>
+    <div class="modal-input-wrap">
+      <input type="number" class="modal-input" id="listPetPrice" min="1" step="1" inputmode="numeric">
+      <span class="modal-input-suffix">💎</span>
+    </div>
+    <div class="modal-recommend" id="listPetRecommend"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeListModal()">Отмена</button>
+      <button class="modal-btn modal-btn-confirm" id="listPetConfirm" onclick="confirmListItem()">📤 Выставить</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА ПОКУПКИ КРИСТАЛЛОВ -->
+<div id="crystalShopModal" class="modal-overlay hidden">
+  <div class="modal" style="border-color:#fbbf24;box-shadow:0 0 40px rgba(251,191,36,.3);">
+    <div class="modal-title" style="color:#fbbf24">💎 Пополнить кристаллы</div>
+    <div class="modal-hint">Курс: 100 💎 = 49 ⭐</div>
+    <div class="buy-crystals-grid" id="crystalPacksGrid"></div>
+    <div style="margin-top:16px;">
+      <button class="modal-btn modal-btn-cancel" style="width:100%;" onclick="closeCrystalShop()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА КОЛЕСА ФОРТУНЫ -->
+<div id="dailyWheelModal" class="modal-overlay hidden">
+  <div class="modal" style="border-color:#ffd700;box-shadow:0 0 40px rgba(255,215,0,.3);padding:16px;">
+    <div class="modal-title" style="color:#ffd700">🎡 Колесо Фортуны</div>
+    <div class="wheel-wrapper">
+      <div class="wheel-pointer">▼</div>
+      <div class="wheel" id="fortuneWheel"></div>
+      <div class="wheel-center">🎁</div>
+    </div>
+    <div id="wheelResultText" style="text-align:center;font-size:16px;font-weight:700;color:#4ade80;margin:10px 0;min-height:22px;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-confirm" style="background:linear-gradient(135deg,#fbbf24,#d97706);" id="spinWheelBtn" onclick="spinDailyWheel()">Крутить!</button>
+      <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('dailyWheelModal').classList.add('hidden')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ТУТОРИАЛ -->
+<div id="tutorialModal" class="tutorial-overlay hidden">
+  <div class="tutorial-step" id="tutorialEmoji">🐔</div>
+  <div class="tutorial-title" id="tutorialTitle">Добро пожаловать!</div>
+  <div class="tutorial-text" id="tutorialText">Тапай по курице, чтобы получать очки и находить яйца!</div>
+  <div class="tutorial-dots">
+    <div class="tutorial-dot active" id="tut-dot-0"></div>
+    <div class="tutorial-dot" id="tut-dot-1"></div>
+    <div class="tutorial-dot" id="tut-dot-2"></div>
+  </div>
+  <button class="tutorial-btn" onclick="nextTutorialStep()" id="tutorialNextBtn">Далее</button>
+</div>
+
+<script>
+const tg = (window.Telegram && window.Telegram.WebApp) || { ready:()=>{}, expand:()=>{}, HapticFeedback:null, initDataUnsafe:{} };
+try{tg.ready()}catch(e){}; try{tg.expand()}catch(e){}
+
+// ====== БОЕВЫЕ НАСТРОЙКИ ======
+const TEST_MODE = false; // Выключили тестовый режим
+const TEST_CRYSTALS = 0;
+const TEST_EGG_CHANCE = 0.0005; // 0.05% шанс выпадения яйца за тап
+const TEST_RARITY_WEIGHTS = { common:70, rare:20, epic:9, legendary:1 }; // Честные шансы внутри яйца
+const TEST_PET_SLOTS = 5; // Базовые слоты
+const EQUIP_LIMIT = 5;
+const EQUIP_BONUS = 0.5;
+const LIST_DURATION_MS = 24*3600*1000;
+const CRYSTAL_PER_10SEC = 1;
+const DAILY_BONUS_AMOUNT = 25;
+// ================================
+
+const CRYSTAL_PACKS = [
+  { amount: 100, price: 49, bonus: 0 },
+  { amount: 250, price: 119, bonus: 5 },
+  { amount: 500, price: 235, bonus: 15 },
+  { amount: 1000, price: 460, bonus: 40 },
+  { amount: 2500, price: 1120, bonus: 150, best: true },
+  { amount: 5000, price: 2200, bonus: 400 }
+];
+
+const RARITIES = [
+  {id:'common',name:'Обычное',emoji:'🥚',hatchSec:60,color:'#9ca3af'},
+  {id:'rare',name:'Редкое',emoji:'🔵',hatchSec:300,color:'#3b82f6'},
+  {id:'epic',name:'Эпик',emoji:'🟣',hatchSec:900,color:'#a855f7'},
+  {id:'legendary',name:'Легенда',emoji:'🟡',hatchSec:3600,color:'#f59e0b'}
+];
+
+const PETS = [
+  {id:'chick',name:'Цыпленок',emoji:'🐣',rarity:'common',income:1,sell:5,weight:20},
+  {id:'hen',name:'Курочка',emoji:'🐥',rarity:'common',income:2,sell:8,weight:20},
+  {id:'duckling',name:'Утенок',emoji:'🦆',rarity:'common',income:1,sell:6,weight:15},
+  {id:'turkey',name:'Индюк',emoji:'🦃',rarity:'common',income:3,sell:10,weight:15},
+  {id:'dove',name:'Голубь',emoji:'🕊️',rarity:'common',income:2,sell:9,weight:10},
+  {id:'rooster',name:'Петух',emoji:'🐓',rarity:'rare',income:5,sell:25,weight:10},
+  {id:'duck',name:'Утка',emoji:'🦆',rarity:'rare',income:4,sell:20,weight:8},
+  {id:'penguin',name:'Пингвин',emoji:'🐧',rarity:'rare',income:6,sell:30,weight:6},
+  {id:'parrot',name:'Попугай',emoji:'🦜',rarity:'rare',income:7,sell:35,weight:4},
+  {id:'owl',name:'Сова',emoji:'🦉',rarity:'epic',income:15,sell:80,weight:4},
+  {id:'eagle',name:'Орел',emoji:'🦅',rarity:'epic',income:20,sell:100,weight:3},
+  {id:'swan',name:'Лебедь',emoji:'🦢',rarity:'epic',income:18,sell:90,weight:2},
+  {id:'peacock',name:'Павлин',emoji:'🦚',rarity:'epic',income:22,sell:110,weight:1},
+  {id:'dragon',name:'Дракон-цыпленок',emoji:'🐉',rarity:'legendary',income:50,sell:500,weight:0.5},
+  {id:'unicorn',name:'Единорог-курица',emoji:'🦄',rarity:'legendary',income:80,sell:800,weight:0.3},
+  {id:'phoenix',name:'Феникс',emoji:'🔥',rarity:'legendary',income:100,sell:1000,weight:0.2}
+];
+
+const SKINS = [
+  { id:'default', name:'Обычная курица', emoji:'🐔', price:0 },
+  { id:'cool', name:'Крутая курица', emoji:'🐔', price:100 },
+  { id:'royal', name:'Королевская', emoji:'👑', price:500 },
+  { id:'alien', name:'Курица-пришелец', emoji:'👽', price:1000 }
+];
+
+const ACHIEVEMENTS = [
+  { id: 'tap_1', title: 'Первый шаг', desc: 'Сделай 1 тап', target: 1, type: 'taps', reward: 10, currency: 'crystals', icon: '👆' },
+  { id: 'tap_5k', title: 'Тапалка', desc: 'Сделай 5000 тапов', target: 5000, type: 'taps', reward: 50, currency: 'crystals', icon: '💥' },
+  { id: 'tap_50k', title: 'Маньяк клика', desc: 'Сделай 50 000 тапов', target: 50000, type: 'taps', reward: 500, currency: 'crystals', icon: '🔥' },
+  { id: 'egg_1', title: 'Первое яйцо', desc: 'Найди 1 яйцо', target: 1, type: 'eggs', reward: 1, currency: 'egg', eggRarity: 'common', icon: '🥚' },
+  { id: 'egg_50', title: 'Коллекционер', desc: 'Найди 50 яиц', target: 50, type: 'eggs', reward: 50, currency: 'crystals', icon: '📦' },
+  { id: 'hatch_1', title: 'Новая жизнь', desc: 'Вылупи 1 питомца', target: 1, type: 'hatched', reward: 20, currency: 'crystals', icon: '🐣' },
+  { id: 'hatch_10', title: 'Фермер', desc: 'Вылупи 10 питомцев', target: 10, type: 'hatched', reward: 150, currency: 'crystals', icon: '🚜' },
+  { id: 'pet_epic', title: 'Эпический питомец', desc: 'Получи эпического питомца', target: 1, type: 'epic_pet', reward: 1, currency: 'egg', eggRarity: 'epic', icon: '🟣' },
+  { id: 'sell_1', title: 'Торговец', desc: 'Продай 1 лот на рынке', target: 1, type: 'sells', reward: 30, currency: 'crystals', icon: '🤝' },
+  { id: 'level_10', title: 'Опытная курица', desc: 'Достигни 10 уровня', target: 10, type: 'level', reward: 100, currency: 'crystals', icon: '🏅' },
+  { id: 'level_50', title: 'Легенда фермы', desc: 'Достигни 50 уровня', target: 50, type: 'level', reward: 1000, currency: 'crystals', icon: '👑' }
+];
+
+const TASKS = [
+  { id: 'task_tg', title: 'Подписка на ТГК', desc: 'Подпишись на наш канал', reward: 50, icon: '📢', type: 'link', link: 'https://t.me/durov' },
+  { id: 'task_10k', title: '10 000 кликов', desc: 'Сделай 10 000 тапов', target: 10000, type: 'taps', reward: 25, icon: '💥' },
+  { id: 'task_50k', title: '50 000 кликов', desc: 'Сделай 50 000 тапов', target: 50000, type: 'taps', reward: 100, icon: '🔥' },
+  { id: 'task_100k', title: '100 000 кликов', desc: 'Сделай 100 000 тапов', target: 100000, type: 'taps', reward: 250, icon: '🌋' },
+  { id: 'task_friends', title: 'Пригласи 10 друзей', desc: 'Приведи 10 друзей по ссылке', target: 10, type: 'friends', reward: 500, icon: '🤝' }
+];
+
+const CHICKEN_LEVELS = [
+  { lvl: 1, emoji: '🐔' }, { lvl: 5, emoji: '🐥' }, { lvl: 10, emoji: '🐓' },
+  { lvl: 20, emoji: '🦅' }, { lvl: 30, emoji: '🦉' }, { lvl: 40, emoji: '🐉' }, { lvl: 50, emoji: '🦄' }
+];
+
+const WHEEL_PRIZES = [
+  { type:'crystals', amount:50, text:'50 💎', color:'#22d3ee' },
+  { type:'points', amount:5000, text:'5K очков', color:'#fbbf24' },
+  { type:'crystals', amount:100, text:'100 💎', color:'#22d3ee' },
+  { type:'egg', eggRarity:'rare', text:'Редкое яйцо', color:'#3b82f6' },
+  { type:'crystals', amount:25, text:'25 💎', color:'#22d3ee' },
+  { type:'points', amount:10000, text:'10K очков', color:'#fbbf24' },
+  { type:'egg', eggRarity:'epic', text:'Эпик яйцо', color:'#a855f7' },
+  { type:'crystals', amount:250, text:'250 💎', color:'#22d3ee' }
+];
+
+function getPetsByRarity(rarity){ return PETS.filter(p=>p.rarity===rarity); }
+
+const BOOSTS = [
+  {id:'energy',icon:'⚡',name:'Полная энергия',desc:'Восстановить энергию',baseCost:100,costMultiplier:1.5,type:'energy'},
+  {id:'tapPower',icon:'💪',name:'Сила тапа',desc:'+1 очко за тап',baseCost:200,costMultiplier:2.0,type:'power'},
+  {id:'energyCap',icon:'🔋',name:'Ёмкость',desc:'+500 к макс. энергии',baseCost:300,costMultiplier:1.8,type:'cap'},
+  {id:'turbo',icon:'🚀',name:'Турбо',desc:'×5 на 30 секунд',baseCost:500,costMultiplier:1.0,type:'turbo'}
+];
+
+const SHOP_ITEMS = [
+  {id:'petSlot',icon:'🐾',name:'+1 слот питомца',desc:'Больше питомцев',price:50,type:'petSlot'},
+  {id:'caseCommon',icon:'🎁',name:'Обычный кейс',desc:'Шанс: 90% об / 10% ред',price:15,type:'case',rarity:'common'},
+  {id:'caseRare',icon:'🎁',name:'Редкий кейс',desc:'Шанс: 80% ред / 18% эпик / 2% лег',price:60,type:'case',rarity:'rare'},
+  {id:'caseEpic',icon:'🎁',name:'Эпик кейс',desc:'Шанс: 85% эпик / 15% лег',price:250,type:'case',rarity:'epic'}
+];
+
+const MAX_NEST = 3;
+const OFFLINE_CAP_SEC = 8*3600;
+
+let state = {
+  balance:0, crystals:0, totalEggs:0, totalTaps:0, totalHatched:0, totalSells:0,
+  eggs:[], inventory:[], nest:[], pets:[],
+  myListings: [],
+  equippedPets: [],
+  energy:1000, maxEnergy:1000, tapPower:1, energyRegen:1,
+  petSlots: TEST_MODE ? TEST_PET_SLOTS : 5,
+  chickenLevel: 1,
+  lastEnergyTick:Date.now(), lastPetIncomeTick:Date.now(), lastSave:Date.now(),
+  turboEnd:0, boostLevels:{},
+  lastOnline:Date.now(),
+  lastWheelSpin: 0,
+  lastDailyBonus: 0,
+  ownedSkins: ['default'],
+  activeSkin: 'default',
+  unlockedAchievements: [],
+  tutorialSeen: false,
+  completedTasks: []
+};
+
+let listModalPetId = null;
+let pendingHatchNestId = null;
+let rouletteActive = false;
+let hatchActive = false;
+let wheelSpinning = false;
+let tutStep = 0;
+
+function loadState(){
+  try{
+    const s = localStorage.getItem(TEST_MODE ? 'nft_egg_farm_test' : 'nft_egg_farm_v4');
+    if(s){
+      const saved = JSON.parse(s);
+      state = {...state, ...saved};
+      if(!state.myListings) state.myListings = [];
+      if(!state.chickenLevel) state.chickenLevel = 1;
+      if(!state.ownedSkins) state.ownedSkins = ['default'];
+      if(!state.activeSkin) state.activeSkin = 'default';
+      if(!state.unlockedAchievements) state.unlockedAchievements = [];
+      if(!state.equippedPets) state.equippedPets = [];
+      if(!state.completedTasks) state.completedTasks = [];
+      
+      const now = Date.now();
+      const offE = Math.floor((now - (state.lastEnergyTick||now))/1000);
+      if(offE>0) state.energy = Math.min(state.maxEnergy, state.energy + offE*state.energyRegen);
+      state.lastEnergyTick = now;
+      const offP = Math.min(OFFLINE_CAP_SEC, Math.floor((now - (state.lastPetIncomeTick||now))/1000));
+      if(offP > 0){
+        const totalInc = getTotalPetIncome();
+        const offlineIncome = Math.floor(totalInc * offP);
+        if(offlineIncome > 0){
+          state.balance += offlineIncome;
+          setTimeout(()=>toast('💤 Оффлайн-доход: +'+fmt(offlineIncome)+' очков'), 500);
+        }
+      }
+      state.lastPetIncomeTick = now;
+    }
+  }catch(e){console.error('load',e)}
+  if(TEST_MODE && state.crystals < TEST_CRYSTALS){
+    state.crystals = TEST_CRYSTALS;
+  }
+}
+function saveState(){
+  const now = Date.now();
+  state.lastEnergyTick = now;
+  state.lastPetIncomeTick = now;
+  state.lastSave = now;
+  state.lastOnline = now;
+  try{ localStorage.setItem(TEST_MODE ? 'nft_egg_farm_test' : 'nft_egg_farm_v4', JSON.stringify(state)); }catch(e){}
+}
+
+function resetTest(){
+  if(!confirm('Сбросить весь прогресс?')) return;
+  localStorage.removeItem('nft_egg_farm_test');
+  localStorage.removeItem('nft_egg_farm_v4');
+  location.reload();
+}
+
+function fmt(n){
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return Math.floor(n).toString();
+}
+function fmtTime(sec){
+  if(sec<=0) return 'готово!';
+  if(sec<60) return sec+' сек';
+  if(sec<3600) return Math.floor(sec/60)+' мин '+(sec%60)+' сек';
+  return Math.floor(sec/3600)+' ч '+Math.floor((sec%3600)/60)+' мин';
+}
+function genId(){ return Date.now()+'_'+Math.random().toString(36).slice(2,8); }
+function isTurbo(){ return Date.now() < state.turboEnd; }
+function getPetById(id){ return PETS.find(p=>p.id===id); }
+function getRarity(id){ return RARITIES.find(r=>r.id===id); }
+
+function getSpeedUpCost(item) {
+  const leftMs = item.finishAt - Date.now();
+  if (leftMs <= 0) return 0;
+  const leftSec = Math.ceil(leftMs / 1000);
+  return Math.max(1, Math.ceil(leftSec / 10) * CRYSTAL_PER_10SEC);
+}
+
+// ИСПРАВЛЕНО: Функция для отображения базовой цифры на карточке
+function getBasePetIncome(petInstance){
+  return getPetById(petInstance.petId)?.income || 0;
+}
+
+// ИСПРАВЛЕНО: Функция для подсчета реального дохода (с учетом экипировки)
+function getRealPetIncome(petInstance){
+  if(!state.equippedPets.includes(petInstance.id)) return 0;
+  const base = getBasePetIncome(petInstance);
+  return Math.round(base * (1 + EQUIP_BONUS));
+}
+
+function getTotalPetIncome(){
+  return state.pets.reduce((s,p)=>s + getRealPetIncome(p), 0);
+}
+
+function getCurrentChickenEmoji() {
+  const skin = SKINS.find(s => s.id === state.activeSkin) || SKINS[0];
+  if (skin.id !== 'default') return skin.emoji;
+  
+  let emoji = '🐔';
+  for (const cl of CHICKEN_LEVELS) {
+    if (state.chickenLevel >= cl.lvl) emoji = cl.emoji;
+  }
+  return emoji;
+}
+
+function tickEnergy(){
+  const now = Date.now();
+  const el = (now - state.lastEnergyTick)/1000;
+  if(el>0){ state.energy = Math.min(state.maxEnergy, state.energy + el*state.energyRegen); state.lastEnergyTick = now; }
+}
+function tickPetIncome(){
+  const now = Date.now();
+  const el = (now - state.lastPetIncomeTick)/1000;
+  if(el > 0 && el < 60){
+    const inc = getTotalPetIncome();
+    if(inc > 0) state.balance += inc * el;
+    state.lastPetIncomeTick = now;
+  } else if(el >= 60){
+    state.lastPetIncomeTick = now;
+  }
+}
+function getBoostCost(b){
+  const lvl = state.boostLevels[b.id]||0;
+  if(b.type==='turbo') return b.baseCost;
+  return Math.floor(b.baseCost * Math.pow(b.costMultiplier, lvl));
+}
+
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(ach => {
+    if (state.unlockedAchievements.includes(ach.id)) return;
+    let current = 0;
+    if (ach.type === 'taps') current = state.totalTaps;
+    else if (ach.type === 'eggs') current = state.totalEggs;
+    else if (ach.type === 'hatched') current = state.totalHatched;
+    else if (ach.type === 'level') current = state.chickenLevel;
+    else if (ach.type === 'sells') current = state.totalSells;
+    else if (ach.type === 'epic_pet') {
+      const hasEpic = state.pets.some(p => getPetById(p.petId)?.rarity === 'epic' || getPetById(p.petId)?.rarity === 'legendary');
+      current = hasEpic ? 1 : 0;
+    }
+    if (current >= ach.target) {
+      state.unlockedAchievements.push(ach.id);
+      if (ach.currency === 'crystals') {
+        state.crystals += ach.reward;
+        toast(`🏆 Достижение: ${ach.title}! +${ach.reward} 💎`);
+      } else if (ach.currency === 'egg') {
+        state.inventory.push({id:genId(), rarityId: ach.eggRarity});
+        const r = getRarity(ach.eggRarity);
+        toast(`🏆 Достижение: ${ach.title}! +${r.emoji} ${r.name} яйцо`);
+      }
+      if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+      saveState();
+    }
+  });
+}
+
+function onChickenClick(e){
+  if(state.energy < 1){ toast('⚡ Энергия закончилась!'); return; }
+  if(rouletteActive || hatchActive || wheelSpinning) return;
+  if(!document.getElementById('listPetModal').classList.contains('hidden')) return;
+  if(!document.getElementById('crystalShopModal').classList.contains('hidden')) return;
+  if(!document.getElementById('tutorialModal').classList.contains('hidden')) return;
+  
+  state.energy -= 1;
+  let pts = state.tapPower;
+  if(isTurbo()) pts *= 5;
+  state.balance += pts; state.totalTaps++;
+  
+  const newLvl = Math.floor(state.totalTaps / 1000) + 1;
+  if(newLvl > state.chickenLevel) {
+    state.chickenLevel = newLvl;
+    if(state.chickenLevel % 10 === 0) {
+      state.tapPower += 1;
+      toast(`🔥 Курица достигла Ур. ${state.chickenLevel}! +1 к силе тапа!`);
+      if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+    }
+    document.getElementById('chicken').textContent = getCurrentChickenEmoji();
+  }
+
+  const ch = document.getElementById('chicken');
+  ch.classList.remove('bounce'); void ch.offsetWidth; ch.classList.add('bounce');
+
+  const area = document.getElementById('chickenArea');
+  const r = area.getBoundingClientRect();
+  
+  const wave = document.createElement('div');
+  wave.className = 'tap-wave';
+  const cx = e.clientX!=null ? e.clientX : (r.left + r.width/2);
+  const cy = e.clientY!=null ? e.clientY : (r.top + r.height/2);
+  wave.style.left = (cx - r.left) + 'px';
+  wave.style.top = (cy - r.top) + 'px';
+  area.appendChild(wave);
+  setTimeout(() => wave.remove(), 600);
+
+  const el = document.createElement('div');
+  el.className = 'float-text';
+  el.textContent = '+'+pts;
+  el.style.left = (cx - r.left - 20)+'px'; el.style.top = (cy - r.top)+'px';
+  area.appendChild(el); setTimeout(()=>el.remove(),1000);
+
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('light')}catch(e){}}
+
+  tryDropEgg();
+  checkAchievements();
+  checkTaskProgress();
+  updateUI();
+}
+
+function tryDropEgg(){
+  if(Math.random() >= TEST_EGG_CHANCE) return;
+  const r = Math.random() * 100;
+  const W = TEST_RARITY_WEIGHTS;
+  let chosen;
+  if(r < W.common)            chosen = 'common';
+  else if(r < W.common+W.rare)     chosen = 'rare';
+  else if(r < W.common+W.rare+W.epic) chosen = 'epic';
+  else                        chosen = 'legendary';
+  runRoulette(chosen);
+}
+
+function runRoulette(rarityId, isFromCase = false){
+  rouletteActive = true;
+  const overlay = document.getElementById('rouletteOverlay');
+  const strip = document.getElementById('rouletteStrip');
+  const result = document.getElementById('rouletteResult');
+  const glow = document.getElementById('rouletteGlow');
+  const confetti = document.getElementById('rouletteConfetti');
+
+  result.textContent = '';
+  result.classList.remove('show');
+  glow.classList.remove('show');
+  confetti.innerHTML = '';
+  overlay.classList.remove('hidden');
+
+  overlay.querySelector('.roulette-title').textContent = isFromCase ? '🎁 Открываем кейс!' : '🎰 Выпало яйцо!';
+
+  const ITEM_W = 110;
+  const TOTAL_ITEMS = 60;
+  const WIN_INDEX = 52;
+  const items = [];
+  for(let i=0; i<TOTAL_ITEMS; i++){
+    if(i === WIN_INDEX){
+      items.push(rarityId);
+    } else {
+      const rr = Math.random()*100;
+      const W = TEST_RARITY_WEIGHTS;
+      if(rr < W.common) items.push('common');
+      else if(rr < W.common+W.rare) items.push('rare');
+      else if(rr < W.common+W.rare+W.epic) items.push('epic');
+      else items.push('legendary');
+    }
+  }
+
+  strip.innerHTML = items.map(id => {
+    const r = getRarity(id);
+    return '<div class="roulette-item '+id+'"><span>'+r.emoji+'</span><span class="item-rarity">'+r.name+'</span></div>';
+  }).join('');
+
+  strip.style.transition = 'none';
+  strip.style.transform = 'translateX(0px)';
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const windowEl = overlay.querySelector('.roulette-window');
+      const winW = windowEl.clientWidth;
+      const targetX = -(WIN_INDEX * ITEM_W + ITEM_W/2 - winW/2);
+      const jitter = (Math.random() - 0.5) * 30;
+      strip.style.transition = 'transform 4.2s cubic-bezier(.15,.9,.25,1)';
+      strip.style.transform = 'translateX('+(targetX + jitter)+'px)';
+    });
+  });
+
+  let tickCount = 0;
+  const tickInterval = setInterval(()=>{
+    if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('light')}catch(e){}}
+    tickCount++;
+    if(tickCount > 20) clearInterval(tickInterval);
+  }, 180);
+
+  setTimeout(() => {
+    clearInterval(tickInterval);
+    const rar = getRarity(rarityId);
+
+    state.eggs.unshift({rarityId:rarityId, ts:Date.now()});
+    if(state.eggs.length>8) state.eggs = state.eggs.slice(0,8);
+    state.inventory.push({id:genId(), rarityId:rarityId});
+    state.totalEggs++;
+    checkAchievements();
+    saveState();
+
+    result.textContent = rar.emoji + ' ' + rar.name + ' яйцо!';
+    result.classList.add('show');
+    glow.classList.add('show');
+
+    if(rarityId === 'epic' || rarityId === 'legendary'){
+      spawnConfetti(rarityId, 'rouletteConfetti');
+      if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+    }
+
+    const close = () => {
+      overlay.classList.add('hidden');
+      rouletteActive = false;
+      overlay.removeEventListener('pointerdown', close);
+      updateUI();
+      toast(rar.emoji+' '+rar.name+' яйцо! '+(isFromCase ? 'Из кейса ' : '')+'Посади в гнездо 🪺');
+    };
+    overlay.addEventListener('pointerdown', close, {once:true});
+    setTimeout(()=>{ if(rouletteActive) close(); }, 5000);
+  }, 4300);
+}
+
+function spawnConfetti(rarityId, containerId){
+  const confetti = document.getElementById(containerId);
+  const colors = rarityId === 'legendary' ? ['#ffd700','#fbbf24','#f59e0b','#fff'] 
+               : rarityId === 'epic' ? ['#a855f7','#c084fc','#9333ea','#fff']
+               : ['#3b82f6','#60a5fa','#2563eb','#fff'];
+  for(let i=0; i<50; i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random()*100 + '%';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDelay = (Math.random()*0.4) + 's';
+    p.style.animationDuration = (1.5 + Math.random()*1.5) + 's';
+    confetti.appendChild(p);
+  }
+}
+
+function buyBoost(id){
+  const b = BOOSTS.find(x=>x.id===id); if(!b) return;
+  const cost = getBoostCost(b);
+  if(state.balance < cost){ toast('Недостаточно очков 😢'); return; }
+  state.balance -= cost;
+  state.boostLevels[id] = (state.boostLevels[id]||0)+1;
+  if(b.type==='energy'){ state.energy = state.maxEnergy; toast('⚡ Энергия восстановлена'); }
+  else if(b.type==='power'){ state.tapPower++; toast('💪 Сила тапа: '+state.tapPower); }
+  else if(b.type==='cap'){ state.maxEnergy += 500; state.energy = state.maxEnergy; toast('🔋 Макс: '+state.maxEnergy); }
+  else if(b.type==='turbo'){ state.turboEnd = Date.now()+30000; toast('🚀 Турбо x5 на 30 сек'); }
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('medium')}catch(e){}}
+  updateUI(); saveState();
+}
+
+function plantEgg(invId){
+  if(state.nest.length >= MAX_NEST){ toast('Гнездо заполнено (макс. 3)'); return; }
+  const i = state.inventory.findIndex(x=>x.id===invId); if(i===-1) return;
+  const egg = state.inventory[i];
+  const r = getRarity(egg.rarityId);
+  state.inventory.splice(i,1);
+  const now = Date.now();
+  state.nest.push({id:genId(), rarityId:egg.rarityId, startedAt:now, finishAt:now + r.hatchSec*1000});
+  toast('🪺 '+r.name+' посажено. Ждать '+fmtTime(r.hatchSec));
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('light')}catch(e){}}
+  updateUI(); saveState();
+}
+
+function claimEgg(nestId){
+  const i = state.nest.findIndex(x=>x.id===nestId); if(i===-1) return;
+  const item = state.nest[i];
+  if(Date.now() < item.finishAt){ toast('Ещё не вылупилось'); return; }
+  if(state.pets.length >= state.petSlots){
+    toast('🐾 Нет места! Продай питомца или купи слот');
+    return;
+  }
+  
+  const pool = getPetsByRarity(item.rarityId);
+  const tw = pool.reduce((s,p)=>s+p.weight,0);
+  let roll = Math.random()*tw, chosen = pool[0];
+  for(const p of pool){ roll -= p.weight; if(roll<=0){ chosen=p; break; } }
+
+  pendingHatchNestId = nestId;
+  runHatchAnimation(chosen, item.rarityId);
+}
+
+function runHatchAnimation(pet, rarityId) {
+  hatchActive = true;
+  const overlay = document.getElementById('hatchOverlay');
+  const eggEl = document.getElementById('hatchEgg');
+  const petEl = document.getElementById('hatchPet');
+  const nameEl = document.getElementById('hatchName');
+  const subEl = document.getElementById('hatchSubtitle');
+  const actionsEl = overlay.querySelector('.hatch-actions');
+  const glowEl = document.getElementById('hatchGlow');
+  const rar = getRarity(rarityId);
+
+  eggEl.style.opacity = '1';
+  eggEl.style.transform = 'scale(1)';
+  eggEl.textContent = rar.emoji; 
+  petEl.classList.remove('show', 'legendary', 'epic', 'rare');
+  petEl.textContent = pet.emoji;
+  nameEl.classList.remove('show');
+  subEl.classList.remove('show');
+  actionsEl.classList.remove('show');
+  glowEl.classList.remove('flash');
+  overlay.querySelector('.roulette-confetti').innerHTML = '';
+  
+  overlay.classList.remove('hidden');
+
+  setTimeout(() => {
+    glowEl.classList.add('flash');
+    eggEl.style.opacity = '0';
+    eggEl.style.transform = 'scale(0)';
+    petEl.classList.add('show');
+    if (rarityId === 'legendary') petEl.classList.add('legendary');
+    if (rarityId === 'epic') petEl.classList.add('epic');
+    if (rarityId === 'rare') petEl.classList.add('rare');
+
+    nameEl.textContent = pet.name;
+    nameEl.style.color = rar.color;
+    subEl.textContent = '+' + pet.income + ' / сек';
+    
+    setTimeout(() => {
+      nameEl.classList.add('show');
+      subEl.classList.add('show');
+      actionsEl.classList.add('show');
+      if (rarityId === 'epic' || rarityId === 'legendary') {
+        spawnConfetti(rarityId, 'hatchConfetti');
+      }
+    }, 400);
+
+    if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+  }, 1500);
+
+  const closeHatch = () => {
+    overlay.classList.add('hidden');
+    hatchActive = false;
+    overlay.removeEventListener('pointerdown', closeHatch);
+    
+    if (pendingHatchNestId) {
+      const idx = state.nest.findIndex(x=>x.id===pendingHatchNestId);
+      if (idx !== -1) {
+        state.pets.push({id:genId(), petId:pet.id});
+        state.totalHatched++;
+        state.nest.splice(idx, 1);
+        checkAchievements();
+        saveState();
+      }
+      pendingHatchNestId = null;
+    }
+    updateUI();
+    toast(pet.emoji + ' ' + pet.name + ' вылупился!');
+  };
+  overlay.addEventListener('pointerdown', closeHatch, {once:true});
+}
+
+function speedUpNest(nestId){
+  const i = state.nest.findIndex(x=>x.id===nestId); if(i===-1) return;
+  const cost = getSpeedUpCost(state.nest[i]);
+  if(state.crystals < cost){ toast('Недостаточно кристаллов 💎 (нужно '+cost+')'); return; }
+  state.crystals -= cost;
+  state.nest[i].finishAt = Date.now();
+  toast('⚡ Гнездо ускорено за '+cost+' 💎');
+  updateUI(); saveState();
+}
+
+function toggleEquipPet(petInstanceId){
+  const idx = state.equippedPets.indexOf(petInstanceId);
+  if(idx !== -1){
+    state.equippedPets.splice(idx, 1);
+    toast('🐾 Питомец снят с экипировки');
+  } else {
+    if(state.equippedPets.length >= EQUIP_LIMIT){
+      toast(`Максимум ${EQUIP_LIMIT} экипированных питомцев!`);
+      return;
+    }
+    state.equippedPets.push(petInstanceId);
+    const pet = state.pets.find(p=>p.id===petInstanceId);
+    const data = pet ? getPetById(pet.petId) : null;
+    toast('⭐ '+ (data?.name || 'Питомец') +' экипирован (+50% дохода)');
+  }
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('medium')}catch(e){}}
+  updateUI(); saveState();
+}
+
+function deletePet(petId){
+  const i = state.pets.findIndex(p=>p.id===petId); if(i===-1) return;
+  const pet = getPetById(state.pets[i].petId);
+  if(!pet) return;
+  const eqIdx = state.equippedPets.indexOf(petId);
+  if(eqIdx !== -1) state.equippedPets.splice(eqIdx, 1);
+  state.pets.splice(i,1);
+  toast('🗑️ Питомец удалён');
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('medium')}catch(e){}}
+  updateUI(); saveState();
+}
+
+function openListModal(petId){
+  const petInstance = state.pets.find(p=>p.id===petId);
+  if(!petInstance) return;
+  const petData = getPetById(petInstance.petId);
+  if(!petData) return;
+
+  listModalPetId = petId;
+  document.getElementById('listPetPreview').innerHTML =
+    '<div class="pet-emoji">'+petData.emoji+'</div>'+
+    '<div class="modal-pet-info">'+
+      '<div class="name">'+petData.name+'</div>'+
+      '<div class="income">+'+petData.income+'/сек</div>'+
+    '</div>';
+
+  const recommended = petData.sell;
+  const input = document.getElementById('listPetPrice');
+  input.value = recommended;
+  document.getElementById('listPetRecommend').textContent = 'Рекомендуемая цена: '+recommended+' 💎';
+
+  document.getElementById('listPetModal').classList.remove('hidden');
+  setTimeout(()=>input.focus(), 100);
+}
+
+function closeListModal(){
+  document.getElementById('listPetModal').classList.add('hidden');
+  listModalPetId = null;
+}
+
+function confirmListItem(){
+  if(!listModalPetId) return;
+  const price = parseInt(document.getElementById('listPetPrice').value);
+  if(!price || price < 1){ toast('Введи цену больше 0'); return; }
+  if(price > 999999){ toast('Максимум 999 999 💎'); return; }
+
+  const i = state.pets.findIndex(p=>p.id===listModalPetId);
+  if(i===-1){ closeListModal(); return; }
+  const petInstance = state.pets[i];
+  const petData = getPetById(petInstance.petId);
+
+  const eqIdx = state.equippedPets.indexOf(petInstance.id);
+  if(eqIdx !== -1) state.equippedPets.splice(eqIdx, 1);
+
+  state.pets.splice(i, 1);
+  const now = Date.now();
+  state.myListings.push({
+    id: genId(), petId: petInstance.petId, price: price, listedAt: now, expiresAt: now + LIST_DURATION_MS
+  });
+  
+  state.totalSells++;
+  checkAchievements();
+  checkTaskProgress();
+
+  toast('📤 '+petData.name+' выставлен за '+price+' 💎');
+  if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+  closeListModal(); updateUI(); saveState();
+}
+
+function cancelListing(listingId){
+  const i = state.myListings.findIndex(l=>l.id===listingId);
+  if(i===-1) return;
+  const lot = state.myListings[i];
+  const petData = getPetById(lot.petId);
+
+  if(state.pets.length >= state.petSlots){
+    toast('🐾 Нет места на ферме для возврата питомца');
+    return;
+  }
+
+  state.myListings.splice(i,1);
+  state.pets.push({id:genId(), petId:lot.petId});
+  toast('↩️ '+petData.name+' возвращён на ферму');
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('medium')}catch(e){}}
+  updateUI(); saveState();
+}
+
+function buyShopItem(id){
+  const item = SHOP_ITEMS.find(x=>x.id===id); if(!item) return;
+  if(state.crystals < item.price){ toast('Недостаточно кристаллов 💎'); return; }
+
+  if(item.type==='petSlot'){
+    if(state.petSlots >= 20){ toast('Максимум слотов (20)'); return; }
+    state.crystals -= item.price; state.petSlots++;
+    toast('🐾 Слотов питомцев: '+state.petSlots);
+    updateUI(); saveState();
+  }
+  else if(item.type==='case'){
+    state.crystals -= item.price; saveState();
+    let chosenRarity = 'common';
+    const r = Math.random() * 100;
+    if(item.rarity === 'common'){
+      if(r < 90) chosenRarity = 'common'; else chosenRarity = 'rare';
+    } else if(item.rarity === 'rare'){
+      if(r < 80) chosenRarity = 'rare'; else if(r < 98) chosenRarity = 'epic'; else chosenRarity = 'legendary';
+    } else if(item.rarity === 'epic'){
+      if(r < 85) chosenRarity = 'epic'; else chosenRarity = 'legendary';
+    }
+    setTimeout(() => runRoulette(chosenRarity, true), 100);
+  }
+  if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('medium')}catch(e){}}
+}
+
+function buySkin(skinId) {
+  const skin = SKINS.find(s => s.id === skinId);
+  if (!skin || state.ownedSkins.includes(skinId)) return;
+  if (state.crystals < skin.price) { toast('Недостаточно кристаллов 💎'); return; }
+  state.crystals -= skin.price;
+  state.ownedSkins.push(skinId);
+  state.activeSkin = skinId;
+  toast(`🎨 Куплен и надет скин: ${skin.name}`);
+  if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+  updateUI(); saveState();
+}
+
+function equipSkin(skinId) {
+  if (!state.ownedSkins.includes(skinId)) return;
+  state.activeSkin = skinId;
+  toast(`🎨 Надет скин: ${SKINS.find(s=>s.id===skinId).name}`);
+  updateUI(); saveState();
+}
+
+function openCrystalShop(){ renderCrystalPacks(); document.getElementById('crystalShopModal').classList.remove('hidden'); }
+function closeCrystalShop(){ document.getElementById('crystalShopModal').classList.add('hidden'); }
+
+function renderCrystalPacks(){
+  const grid = document.getElementById('crystalPacksGrid');
+  grid.innerHTML = CRYSTAL_PACKS.map((pack, idx) => {
+    const isBest = pack.best;
+    const bonusText = pack.bonus > 0 ? '+' + pack.bonus + ' бонус' : '';
+    return '<div class="crystal-pack '+(isBest?'best':'')+'" onclick="buyCrystalPack('+idx+')">'+
+      '<div class="crystal-pack-icon">💎</div>'+
+      '<div class="crystal-pack-amount">'+pack.amount+'</div>'+
+      '<div class="crystal-pack-price">'+pack.price+'</div>'+
+      '<div class="crystal-pack-bonus">'+bonusText+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function buyCrystalPack(idx){
+  const pack = CRYSTAL_PACKS[idx];
+  if(!pack) return;
+  if(TEST_MODE){
+    state.crystals += pack.amount;
+    toast('🧪 Тест: +'+pack.amount+' 💎');
+    if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+    updateUI(); saveState(); closeCrystalShop();
+    return;
+  }
+  toast('💎 Покупка за ⭐ появится позже');
+}
+
+// БОНУСЫ
+function checkDailyBonus() {
+  const now = Date.now();
+  const cooldown = 24*3600*1000;
+  const canClaim = (now - state.lastDailyBonus) >= cooldown;
+  const btn = document.getElementById('dailyBonusBtn');
+  if (canClaim) {
+    btn.disabled = false;
+    btn.textContent = `Забрать ${DAILY_BONUS_AMOUNT} 💎`;
+  } else {
+    btn.disabled = true;
+    const left = cooldown - (now - state.lastDailyBonus);
+    btn.textContent = `Через ${fmtTime(Math.ceil(left/1000))}`;
+  }
+}
+
+function claimDailyBonus() {
+  const now = Date.now();
+  if (now - state.lastDailyBonus < 24*3600*1000) return;
+  state.crystals += DAILY_BONUS_AMOUNT;
+  state.lastDailyBonus = now;
+  toast(`🎁 Ежедневный бонус: +${DAILY_BONUS_AMOUNT} 💎`);
+  if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+  checkDailyBonus();
+  updateUI(); saveState();
+}
+
+// КОЛЕСО ФОРТУНЫ
+function openDailyWheel() {
+  const now = Date.now();
+  const cooldown = 24*3600*1000;
+  if (now - state.lastWheelSpin < cooldown) {
+    const left = cooldown - (now - state.lastWheelSpin);
+    toast('⏳ Следующая попытка через ' + fmtTime(Math.ceil(left/1000)));
+    return;
+  }
+  drawWheel();
+  document.getElementById('wheelResultText').textContent = '';
+  document.getElementById('spinWheelBtn').disabled = false;
+  document.getElementById('spinWheelBtn').style.opacity = 1;
+  document.getElementById('spinWheelBtn').style.display = 'block';
+  document.getElementById('dailyWheelModal').classList.remove('hidden');
+}
+
+function drawWheel() {
+  const wheel = document.getElementById('fortuneWheel');
+  wheel.style.transform = 'rotate(0deg)';
+  wheel.innerHTML = '';
+  const numSegments = WHEEL_PRIZES.length;
+  const angleStep = 360 / numSegments;
+
+  let gradient = 'conic-gradient(';
+  for (let i = 0; i < numSegments; i++) {
+    const color = WHEEL_PRIZES[i].color;
+    const start = i * angleStep;
+    const end = (i + 1) * angleStep;
+    gradient += `${color} ${start}deg ${end}deg,`;
+  }
+  gradient = gradient.slice(0, -1) + ')';
+  wheel.style.background = gradient;
+
+  for (let i = 0; i < numSegments; i++) {
+    const text = document.createElement('div');
+    text.className = 'wheel-text';
+    text.textContent = WHEEL_PRIZES[i].text;
+    text.style.position = 'absolute';
+    text.style.left = '50%';
+    text.style.top = '50%';
+    text.style.transformOrigin = '0 0';
+    const rotateAngle = i * angleStep + (angleStep / 2);
+    text.style.transform = `rotate(${rotateAngle - 90}deg) translate(50px, -10px)`;
+    wheel.appendChild(text);
+  }
+}
+
+function spinDailyWheel() {
+  if (wheelSpinning) return;
+  wheelSpinning = true;
+  document.getElementById('spinWheelBtn').disabled = true;
+  document.getElementById('spinWheelBtn').style.opacity = .5;
+  
+  const winIdx = Math.floor(Math.random() * WHEEL_PRIZES.length);
+  const prize = WHEEL_PRIZES[winIdx];
+  
+  const numSegments = WHEEL_PRIZES.length;
+  const angleStep = 360 / numSegments;
+  const wheel = document.getElementById('fortuneWheel');
+  
+  const winAngle = winIdx * angleStep + (angleStep / 2);
+  const totalRotation = 360 * 5 + (360 - winAngle); 
+  
+  wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+  wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+  let tickCount = 0;
+  const tickInterval = setInterval(() => {
+    if(tg.HapticFeedback){try{tg.HapticFeedback.impactOccurred('light')}catch(e){}}
+    tickCount++;
+    if (tickCount > 30) clearInterval(tickInterval);
+  }, 100);
+
+  setTimeout(() => {
+    clearInterval(tickInterval);
+    wheelSpinning = false;
+    state.lastWheelSpin = Date.now();
+    
+    if (prize.type === 'crystals') {
+      state.crystals += prize.amount;
+      document.getElementById('wheelResultText').innerHTML = `🎉 Вы выиграли: <b style="color:#22d3ee">${prize.amount} 💎</b>`;
+    } else if (prize.type === 'points') {
+      state.balance += prize.amount;
+      document.getElementById('wheelResultText').innerHTML = `🎉 Вы выиграли: <b style="color:#fbbf24">${fmt(prize.amount)} очков</b>`;
+    } else if (prize.type === 'egg') {
+      state.inventory.push({id:genId(), rarityId: prize.eggRarity});
+      const r = getRarity(prize.eggRarity);
+      document.getElementById('wheelResultText').innerHTML = `🎉 Вы выиграли: <b style="color:${r.color}">${r.name} яйцо</b>`;
+    }
+    
+    checkAchievements();
+    updateUI(); saveState();
+    if(tg.HapticFeedback){try{tg.HapticFeedback.notificationOccurred('success')}catch(e){}}
+    
+    document.getElementById('spinWheelBtn').style.display = 'none';
+  }, 4200);
+}
+
+// ЗАДАНИЯ
+function renderTasks() {
+  const container = document.getElementById('tasksList');
+  container.innerHTML = TASKS.map(task => {
+    const done = state.completedTasks.includes(task.id);
+    let btnHtml = '';
+    
+    if (done) {
+      btnHtml = `<button class="task-btn done" disabled>✅ Получено</button>`;
+    } else {
+      if (task.type === 'link' || task.type === 'friends') {
+        btnHtml = `<button class="task-btn" onclick="checkTask('${task.id}')">Проверить</button>`;
+      } else if (task.type === 'taps') {
+        const current = state.totalTaps;
+        const target = task.target;
+        if (current >= target) {
+          btnHtml = `<button class="task-btn claim" onclick="claimTask('${task.id}')">Забрать</button>`;
+        } else {
+          const currentStr = current >= 1000 ? (current/1000).toFixed(0)+'K' : current;
+          const targetStr = target >= 1000 ? (target/1000).toFixed(0)+'K' : target;
+          btnHtml = `<button class="task-btn disabled" disabled>${currentStr} / ${targetStr}</button>`;
+        }
+      }
+    }
+    
+    return `<div class="task-item ${done?'completed':''}">
+      <div class="task-icon">${task.icon}</div>
+      <div class="task-info">
+        <div class="task-title">${task.title}</div>
+        <div class="task-desc">${task.desc}</div>
+        <div class="task-reward">+${task.reward} 💎</div>
+      </div>
+      ${btnHtml}
+    </div>`;
+  }).join('');
+}
+
+function checkTaskProgress() {
+  if (document.getElementById('page-tasks').classList.contains('active')) {
+    renderTasks();
+  }
+}
+
+function checkTask(taskId) {
+  const task = TASKS.find(t => t.id === taskId);
+  if (!task) return;
+  
+  if (task.type === 'link') {
+    toast('🔗 Ссылка открыта! Возвращайся и забирай награду.');
+    window.open(task.link, '_blank');
+    setTimeout(() => {
+      if (!state.completedTasks.includes(taskId)) {
+        state.completedTasks.push(taskId);
+        state.crystals += task.reward;
+        toast(`✅ ${task.title} +${task.reward} 💎`);
+        updateUI(); renderTasks(); saveState();
+      }
+    }, 2000);
+  } 
+  else if (task.type === 'friends') {
+    if (!state.completedTasks.includes(taskId)) {
+      state.completedTasks.push(taskId);
+      state.crystals += task.reward;
+      toast(`✅ ${task.title} +${task.reward} 💎`);
+      updateUI(); renderTasks(); saveState();
+    }
+  }
+}
+
+function claimTask(taskId) {
+  if (state.completedTasks.includes(taskId)) return;
+  const task = TASKS.find(t => t.id === taskId);
+  if (!task) return;
+  
+  if (task.type === 'taps' && state.totalTaps < task.target) {
+    toast('Условия ещё не выполнены');
+    return;
+  }
+  
+  state.completedTasks.push(taskId);
+  state.crystals += task.reward;
+  toast(`✅ ${task.title} +${task.reward} 💎`);
+  updateUI(); renderTasks(); saveState();
+}
+
+// ТУТОРИАЛ
+function startTutorial() {
+  tutStep = 0;
+  renderTutorialStep();
+  document.getElementById('tutorialModal').classList.remove('hidden');
+}
+
+function renderTutorialStep() {
+  const emoji = document.getElementById('tutorialEmoji');
+  const title = document.getElementById('tutorialTitle');
+  const text = document.getElementById('tutorialText');
+  const dots = [0,1,2].map(i => document.getElementById('tut-dot-'+i));
+  
+  dots.forEach(d => d.classList.remove('active'));
+  dots[tutStep].classList.add('active');
+
+  if (tutStep === 0) {
+    emoji.textContent = '🐔';
+    title.textContent = 'Тапай курицу!';
+    text.textContent = 'Нажимай на курицу, чтобы зарабатывать очки. Иногда из неё будут выпадать яйца!';
+  } else if (tutStep === 1) {
+    emoji.textContent = '🪺';
+    title.textContent = 'Посади яйцо в гнездо';
+    text.textContent = 'Перейди во вкладку «Гнездо», выбери яйцо и подожди, пока из него вылупится питомец.';
+  } else if (tutStep === 2) {
+    emoji.textContent = '🎁';
+    title.textContent = 'Задания и Бонусы';
+    text.textContent = 'Заходи в «Бонусы» за халявой и выполняй «Задания», чтобы получить много кристаллов!';
+    document.getElementById('tutorialNextBtn').textContent = 'Начать игру!';
+  }
+}
+
+function nextTutorialStep() {
+  tutStep++;
+  if (tutStep > 2) {
+    document.getElementById('tutorialModal').classList.add('hidden');
+    state.tutorialSeen = true;
+    saveState();
+  } else {
+    renderTutorialStep();
+  }
+}
+
+function updateUI(){
+  const bt = fmt(state.balance);
+  ['balance','balance2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=bt; });
+  document.getElementById('eggCount').textContent = state.totalEggs;
+  document.getElementById('totalEggs').textContent = state.totalEggs;
+  document.getElementById('statTaps').textContent = state.totalTaps;
+  document.getElementById('statHatched').textContent = state.totalHatched;
+  document.getElementById('statPets').textContent = state.pets.length;
+  document.getElementById('statPower').textContent = state.tapPower;
+  document.getElementById('statEnergy').textContent = state.maxEnergy;
+  document.getElementById('statCrystals').textContent = state.crystals;
+  document.getElementById('petCrystals').textContent = state.crystals+' 💎';
+  document.getElementById('profileCrystals').textContent = state.crystals+' 💎';
+  document.getElementById('topCrystals').textContent = fmt(state.crystals);
+
+  document.getElementById('chickenLevelText').textContent = 'Ур. ' + state.chickenLevel;
+  document.getElementById('chickenLevelPower').textContent = 'Сила тапа: ' + state.tapPower;
+  const currentLevelBase = (state.chickenLevel - 1) * 1000;
+  const progressPct = Math.min(100, ((state.totalTaps - currentLevelBase) / 1000) * 100);
+  document.getElementById('chickenLevelFill').style.width = Math.max(0, progressPct) + '%';
+  document.getElementById('chicken').textContent = getCurrentChickenEmoji();
+
+  const now = Date.now();
+  const cooldownWheel = 24*3600*1000;
+  const canSpin = (now - state.lastWheelSpin >= cooldownWheel);
+  const wheelBtn = document.getElementById('wheelBigBtn');
+  if (canSpin) {
+    wheelBtn.textContent = 'Крутить!';
+    wheelBtn.disabled = false;
+  } else {
+    wheelBtn.textContent = 'Ждать ' + fmtTime(Math.ceil((cooldownWheel - (now - state.lastWheelSpin))/1000));
+    wheelBtn.disabled = true;
+  }
+
+  const pct = (state.energy/state.maxEnergy)*100;
+  document.getElementById('energyFill').style.width = pct+'%';
+  document.getElementById('energyText').textContent = Math.floor(state.energy)+' / '+state.maxEnergy;
+
+  let html = '';
+  for(let i=0;i<8;i++){
+    const egg = state.eggs[i];
+    if(egg){ const r = getRarity(egg.rarityId)||RARITIES[0];
+      html += '<div class="egg-slot '+r.id+'"><span>'+r.emoji+'</span><span class="egg-rarity">'+r.name+'</span></div>';
+    } else html += '<div class="egg-slot empty">·</div>';
+  }
+  document.getElementById('eggsGrid').innerHTML = html;
+
+  document.getElementById('boostsGrid').innerHTML = BOOSTS.map(b=>{
+    const c = getBoostCost(b); const can = state.balance>=c;
+    return '<div class="boost-card '+(can?'':'disabled')+'" onclick="buyBoost(\''+b.id+'\')">'+
+      '<div class="boost-icon">'+b.icon+'</div>'+
+      '<div class="boost-name">'+b.name+'</div>'+
+      '<div class="boost-desc">'+b.desc+'</div>'+
+      '<div class="boost-price '+(can?'':'cant')+'">'+fmt(c)+'</div>'+
+    '</div>';
+  }).join('');
+
+  renderNest(); renderInv(); renderPets(); renderMyLots(); renderShop(); renderSkins(); renderAchievements(); updateBadge(); updatePetHeader(); renderTasks(); checkDailyBonus();
+}
+
+function updatePetHeader(){
+  document.getElementById('petCount').textContent = state.pets.length+' / '+state.petSlots;
+  const inc = getTotalPetIncome();
+  document.getElementById('petIncome').textContent = '+'+inc+'/сек';
+  document.getElementById('petIncomeBig').textContent = '+'+inc+' / сек';
+}
+
+function renderNest(){
+  const grid = document.getElementById('nestGrid');
+  document.getElementById('nestCount').textContent = state.nest.length+' / '+MAX_NEST;
+  if(state.nest.length === 0){
+    grid.innerHTML = '<div class="empty-nest"><div class="big">🪺</div>Гнездо пусто.<br>Посади яйцо из коллекции ниже.</div>';
+    return;
+  }
+  grid.innerHTML = state.nest.map(item => {
+    const r = getRarity(item.rarityId);
+    const now = Date.now();
+    const leftMs = item.finishAt - now;
+    const leftSec = Math.max(0, Math.ceil(leftMs / 1000));
+    const total = r.hatchSec;
+    const prog = Math.min(100, Math.max(0, ((total - leftSec) / total) * 100));
+    const ready = leftSec <= 0;
+    const speedCost = getSpeedUpCost(item);
+    return '<div class="nest-card '+r.id+' '+(ready?'ready':'')+'">'+
+      '<div class="nest-egg">'+r.emoji+'</div>'+
+      '<div class="nest-info-block">'+
+        '<div class="nest-name">'+r.name+' яйцо</div>'+
+        '<div class="nest-timer">'+(ready?'✨ Готово!':'⏳ '+fmtTime(leftSec))+'</div>'+
+        '<div class="nest-progress"><div class="nest-progress-fill" style="width:'+prog+'%"></div></div>'+
+      '</div>'+
+      (ready ? '<button class="nest-btn claim" onclick="claimEgg(\''+item.id+'\')">Забрать</button>'
+             : '<button class="nest-btn" onclick="speedUpNest(\''+item.id+'\')">⚡ '+speedCost+'💎</button>')+
+    '</div>';
+  }).join('');
+}
+
+function renderInv(){
+  const grid = document.getElementById('inventoryGrid');
+  if(state.inventory.length === 0){
+    grid.innerHTML = '<div class="empty-nest" style="grid-column:1/-1;">Пока нет яиц для посадки.<br>Тапай курицу — вдруг выпадет!</div>';
+    return;
+  }
+  grid.innerHTML = state.inventory.slice(-8).reverse().map(egg => {
+    const r = getRarity(egg.rarityId);
+    const can = state.nest.length < MAX_NEST;
+    return '<div class="egg-slot '+r.id+'" style="cursor:'+(can?'pointer':'not-allowed')+';opacity:'+(can?1:0.5)+';" onclick="plantEgg(\''+egg.id+'\')">'+
+      '<span>'+r.emoji+'</span><span class="egg-rarity">'+r.name+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+function renderPets(){
+  const grid = document.getElementById('petsGrid');
+  const cells = [];
+  state.pets.forEach(p => {
+    const pet = getPetById(p.petId); if(!pet) return;
+    const isEquipped = state.equippedPets.includes(p.id);
+    const baseInc = getBasePetIncome(p);
+    const realInc = getRealPetIncome(p);
+    
+    let incHtml = '';
+    if (isEquipped) {
+      incHtml = `<div class="pet-income active">+${realInc}/сек <span class="bonus">+50%</span></div>`;
+    } else {
+      incHtml = `<div class="pet-income inactive">+${baseInc}/сек</div>`;
+    }
+
+    cells.push(
+      '<div class="pet-card '+pet.rarity+(isEquipped?' equipped':'')+'">'+
+        '<div class="pet-emoji">'+pet.emoji+'</div>'+
+        '<div class="pet-name">'+pet.name+'</div>'+
+        incHtml +
+        '<div class="pet-actions">'+
+          '<button class="pet-btn pet-btn-equip'+(isEquipped?' equipped':'')+'" onclick="toggleEquipPet(\''+p.id+'\')">'+
+            (isEquipped ? '✓ Снять' : '⭐ Экипировать')+
+          '</button>'+
+          '<button class="pet-btn pet-btn-sell" onclick="openListModal(\''+p.id+'\')">📤 Выставить</button>'+
+          '<button class="pet-btn pet-btn-del" onclick="deletePet(\''+p.id+'\')">🗑️ Удалить</button>'+
+        '</div>'+
+      '</div>'
+    );
+  });
+  for(let i=state.pets.length; i<state.petSlots; i++){
+    cells.push('<div class="pet-slot-empty">+</div>');
+  }
+  grid.innerHTML = cells.join('');
+}
+
+function renderMyLots(){
+  const grid = document.getElementById('myLotsContainer');
+  const now = Date.now();
+  const active = state.myListings.filter(l => now < l.expiresAt);
+
+  if(active.length === 0){
+    grid.innerHTML = '<div class="empty-nest" style="grid-column:1/-1;">Пока нет активных лотов.<br>Выстави питомца на рынок с вкладки «Питомцы».</div>';
+    return;
+  }
+
+  grid.innerHTML = active.map(lot => {
+    const pet = getPetById(lot.petId); if(!pet) return '';
+    const leftMs = lot.expiresAt - now;
+    const leftH = Math.floor(leftMs/3600000);
+    const leftM = Math.floor((leftMs%3600000)/60000);
+    const timeStr = leftH > 0 ? leftH+' ч '+leftM+' мин' : leftM+' мин';
+    return '<div class="pet-card '+pet.rarity+' listed">'+
+      '<div class="pet-emoji">'+pet.emoji+'</div>'+
+      '<div class="pet-name">'+pet.name+'</div>'+
+      '<div style="font-size:13px;font-weight:700;color:#22d3ee">'+lot.price+' 💎</div>'+
+      '<div style="font-size:10px;opacity:.5">⏳ '+timeStr+'</div>'+
+      '<div class="pet-actions">'+
+        '<button class="pet-btn pet-btn-del" onclick="cancelListing(\''+lot.id+'\')">↩️ Снять</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderShop(){
+  document.getElementById('shop-cases').innerHTML = SHOP_ITEMS.map(item=>{
+    const can = state.crystals >= item.price;
+    return '<div class="shop-card '+(can?'':'disabled')+'" onclick="buyShopItem(\''+item.id+'\')">'+
+      '<div class="shop-icon">'+item.icon+'</div>'+
+      '<div class="shop-name">'+item.name+'</div>'+
+      '<div class="shop-desc">'+item.desc+'</div>'+
+      '<div class="shop-price '+(can?'':'cant')+'">'+item.price+' 💎</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderSkins() {
+  const container = document.getElementById('shop-skins');
+  container.innerHTML = SKINS.map(skin => {
+    const owned = state.ownedSkins.includes(skin.id);
+    const equipped = state.activeSkin === skin.id;
+    
+    let btnHtml = '';
+    if (equipped) {
+      btnHtml = '<button class="skin-btn equipped">Надето</button>';
+    } else if (owned) {
+      btnHtml = '<button class="skin-btn equip" onclick="equipSkin(\''+skin.id+'\')">Надеть</button>';
+    } else {
+      const canBuy = state.crystals >= skin.price;
+      btnHtml = '<button class="skin-btn buy '+(canBuy?'':'disabled')+'" onclick="buySkin(\''+skin.id+'\')">'+skin.price+' 💎</button>';
+    }
+    
+    return '<div class="skin-card '+(equipped?'equipped':owned?'owned':'')+'">'+
+      '<div class="skin-info">'+
+        '<div class="skin-emoji">'+skin.emoji+'</div>'+
+        '<div>'+
+          '<div class="skin-name">'+skin.name+'</div>'+
+          (skin.price > 0 && !owned ? '<div class="skin-price">'+skin.price+' 💎</div>' : '')+
+        '</div>'+
+      '</div>'+
+      btnHtml+
+    '</div>';
+  }).join('');
+}
+
+function switchShopTab(tab, e) {
+  document.querySelectorAll('.shop-tab').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  if (tab === 'cases') {
+    document.getElementById('shop-cases').classList.remove('hidden');
+    document.getElementById('shop-skins').classList.add('hidden');
+  } else {
+    document.getElementById('shop-cases').classList.add('hidden');
+    document.getElementById('shop-skins').classList.remove('hidden');
+  }
+}
+
+function renderAchievements() {
+  const container = document.getElementById('achList');
+  container.innerHTML = ACHIEVEMENTS.map(ach => {
+    const done = state.unlockedAchievements.includes(ach.id);
+    return '<div class="ach-item '+(done?'done':'')+'">'+
+      '<div class="ach-icon">'+ach.icon+'</div>'+
+      '<div class="ach-info">'+
+        '<div class="ach-title">'+ach.title+'</div>'+
+        '<div class="ach-desc">'+ach.desc+'</div>'+
+        '<div class="ach-reward">Награда: '+ (ach.currency === 'crystals' ? ach.reward + ' 💎' : 'Яйцо') +'</div>'+
+      '</div>'+
+      '<div class="ach-status">'+(done?'✅':'🔒')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function updateBadge(){
+  const b = document.getElementById('nestBadge');
+  const c = state.nest.filter(n => Date.now() >= n.finishAt).length;
+  if(c > 0){ b.textContent = c; b.classList.remove('hidden'); }
+  else b.classList.add('hidden');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="'+tab+'"]').classList.add('active');
+  updateUI();
+}
+
+function switchMarketTab(tab){
+  document.querySelectorAll('.market-tab').forEach(b=>b.classList.remove('active'));
+  if(tab==='my'){
+    document.querySelectorAll('.market-tab')[0].classList.add('active');
+    document.getElementById('market-my').classList.remove('hidden');
+    document.getElementById('market-shop').classList.add('hidden');
+  } else {
+    document.querySelectorAll('.market-tab')[1].classList.add('active');
+    document.getElementById('market-my').classList.add('hidden');
+    document.getElementById('market-shop').classList.remove('hidden');
+  }
+}
+
+let toastT = null;
+function toast(msg){
+  const ex = document.querySelector('.toast'); if(ex) ex.remove();
+  if(toastT) clearTimeout(toastT);
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  toastT = setTimeout(()=>el.remove(), 2000);
+}
+
+try{
+  loadState();
+  document.getElementById('chicken').addEventListener('pointerdown', onChickenClick);
+  setInterval(()=>{ tickEnergy(); tickPetIncome(); updateUI(); }, 1000);
+  setInterval(saveState, 5000);
+  window.addEventListener('beforeunload', saveState);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveState(); });
+  
+  if (!state.tutorialSeen) {
+    setTimeout(() => startTutorial(), 500);
+  }
+  
+  updateUI();
+  console.log('✅ Боевая версия! Шансы снижены.');
+}catch(e){ console.error('❌ Ошибка:', e); }
+</script>
+</body>
+</html>
